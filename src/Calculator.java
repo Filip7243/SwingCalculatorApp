@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Calculator {
 
@@ -13,7 +15,11 @@ public class Calculator {
             new JButton("C"),
     };
     private static JTextField screen = new JTextField(10);
+    private List<String> arithmeticOperations = new ArrayList<>();
     private StringBuilder sb = new StringBuilder();
+    private double result = 0.0;
+    private double number = 0.0;
+//    private String lastClicked = "";
 
     public Calculator() {
         // buttons config
@@ -44,18 +50,19 @@ public class Calculator {
         for (int i = 0; i < numButtons.length; i++) {
             numButtons[i] = new JButton(String.valueOf(i));
         }
+        numButtons[numButtons.length - 1] = new JButton(".");
     }
 
     private void addButtonsToPanel(JButton[] numButtons, JPanel panel) {
-        for(JButton b : numButtons) {
+        for (JButton b : numButtons) {
             panel.add(b);
         }
     }
 
     private void addActionListenerToNumButtons() {
-        for(JButton b : numButtons) {
+        for (JButton b : numButtons) {
             b.addActionListener(e -> {
-                if(!(sb.isEmpty() && sb.length() == 0 && e.getActionCommand().equals("0"))) {
+                if (!(sb.isEmpty() && sb.length() == 0 && e.getActionCommand().equals("0"))) {
                     sb.append(e.getActionCommand());
                     screen.setText(sb.toString());
                 }
@@ -64,23 +71,45 @@ public class Calculator {
     }
 
     private void addActionListenerToFunctionalButtons() {
-        for(JButton b : functionalButtons) {
+        for (JButton b : functionalButtons) {
             b.addActionListener(e -> {
-                switch (e.getActionCommand()) {
-                    case "+":
-                        break;
-                    case "-":
-                        break;
-                    case "*":
-                        break;
-                    case "/":
-                        break;
-                    case "=":
-                        break;
-                    case "C":
-                        break;
-                }
+                String clickedButton = e.getActionCommand();
+                arithmeticOperations.add(sb.toString());
+                arithmeticOperations.add(clickedButton);
+                sb = new StringBuilder();
+                screen.setText("");
+                whenEqualsClicked(clickedButton);
+                screen.setText(String.valueOf(result));
             });
+        }
+    }
+
+    private void whenEqualsClicked(String clickedButton) {
+        if (clickedButton.equals("=")) {
+            String lastClicked = arithmeticOperations.get(arithmeticOperations.size() - 3);
+            for (int i = 0; i < arithmeticOperations.size(); i++) {
+                if (i % 2 != 0) {
+                    String buttonClicked = arithmeticOperations.get(i);
+                    makeOperationDependOnButtonClicked(buttonClicked);
+                } else {
+                    number = Double.parseDouble(arithmeticOperations.get(i));
+                }
+            }
+            makeOperationDependOnButtonClicked(lastClicked);
+        }
+    }
+
+    private void makeOperationDependOnButtonClicked(String buttonClicked) {
+        switch (buttonClicked) {
+            case "+" -> result += number;
+            case "-" -> result -= number;
+            case "/" -> result /= number;
+            case "*" -> {
+                if (result == 0.0) {
+                    result = 1.0;
+                }
+                result *= number;
+            }
         }
     }
 
