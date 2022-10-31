@@ -18,7 +18,6 @@ public class Calculator {
     private StringBuilder sb = new StringBuilder();
     private double result = 0.0;
     private double number = 0.0;
-//    private String lastClicked = "";
 
     public Calculator() {
         // buttons config
