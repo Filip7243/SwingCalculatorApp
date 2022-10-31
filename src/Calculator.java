@@ -17,7 +17,8 @@ public class Calculator {
     private List<String> arithmeticOperations = new ArrayList<>();
     private StringBuilder sb = new StringBuilder();
     private double result = 0.0;
-    private double number = 0.0;
+    private double n1 = 0.0;
+    private double n2 = 0.0;
 
     public Calculator() {
         // buttons config
@@ -63,7 +64,7 @@ public class Calculator {
         for (JButton b : numButtons) {
             b.addActionListener(e -> {
                 String buttonClicked = e.getActionCommand();
-                if(sb.toString().contains(".") && buttonClicked.equals(".")) {
+                if (sb.toString().contains(".") && buttonClicked.equals(".")) {
                     return;
                 } else if (buttonClicked.equals("C") && sb.length() >= 1) {
                     sb = new StringBuilder(sb.substring(0, sb.length() - 1));
@@ -91,16 +92,19 @@ public class Calculator {
 
     private void whenEqualsClicked(String clickedButton) {
         if (clickedButton.equals("=")) {
-            String lastClicked = arithmeticOperations.get(arithmeticOperations.size() - 3);
-            arithmeticOperations.forEach(System.out::println);
-            for (String arithmeticOperation : arithmeticOperations) {
+            arithmeticOperations.remove(arithmeticOperations.size() - 1);
+            for (int i = 0; i < arithmeticOperations.size(); i++) {
                 try {
-                    number = Double.parseDouble(arithmeticOperation);
+                    Double.parseDouble(arithmeticOperations.get(i));
                 } catch (NumberFormatException e) { // when exception catched, it means functional operator
-                    makeOperationDependOnButtonClicked(arithmeticOperation);
+                    n1 = Double.parseDouble(arithmeticOperations.get(i - 1));
+                    n2 = Double.parseDouble(arithmeticOperations.get(i + 1));
+                    makeOperationDependOnButtonClicked(arithmeticOperations.get(i));
+                    arithmeticOperations.remove(i - 1);
+                    arithmeticOperations.remove(i);
+                    arithmeticOperations.add(i, String.valueOf(result));
                 }
             }
-            makeOperationDependOnButtonClicked(lastClicked);
             screen.setText(String.valueOf(result));
             arithmeticOperations.clear();
             result = 0.0;
@@ -109,28 +113,11 @@ public class Calculator {
 
     private void makeOperationDependOnButtonClicked(String buttonClicked) {
         switch (buttonClicked) {
-            case "+" -> result += number;
-            case "-" -> {
-                if(result <= 0) {
-                    result *= -1;
-                }
-                result -= number;
-            }
-            case "/" -> {
-                if(result == 0.0) {
-                    result += number;
-                } else {
-                    result /= number;
-                }
-            }
-            case "*" -> {
-                if (result == 0.0) {
-                    result = 1.0;
-                }
-                result *= number;
-            }
+            case "+" -> result = n1 + n2;
+            case "-" -> result = n1 - n2;
+            case "/" -> result = n1 / n2;
+            case "*" -> result = n1 * n2;
         }
     }
-
 
 }
