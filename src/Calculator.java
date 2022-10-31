@@ -5,14 +5,13 @@ import java.util.List;
 
 public class Calculator {
 
-    private final static JButton[] numButtons = new JButton[11];
+    private final static JButton[] numButtons = new JButton[12];
     private final static JButton[] functionalButtons = {
             new JButton("+"),
             new JButton("-"),
             new JButton("*"),
             new JButton("/"),
             new JButton("="),
-            new JButton("C"),
     };
     private static JTextField screen = new JTextField(10);
     private List<String> arithmeticOperations = new ArrayList<>();
@@ -50,8 +49,9 @@ public class Calculator {
         for (int i = 0; i < numButtons.length; i++) {
             numButtons[i] = new JButton(String.valueOf(i));
         }
-        System.out.println(numButtons[numButtons.length - 1].getText());
-        numButtons[numButtons.length - 1] = new JButton(".");
+        numButtons[numButtons.length - 2] = new JButton(".");
+        numButtons[numButtons.length - 1] = new JButton("C");
+
     }
 
     private void addButtonsToPanel(JButton[] numButtons, JPanel panel) {
@@ -63,11 +63,14 @@ public class Calculator {
     private void addActionListenerToNumButtons() {
         for (JButton b : numButtons) {
             b.addActionListener(e -> {
-                if(sb.toString().contains(".") && e.getActionCommand().equals(".")) {
+                String buttonClicked = e.getActionCommand();
+                if(sb.toString().contains(".") && buttonClicked.equals(".")) {
                     return;
-                }
-                if (!(sb.isEmpty() && sb.length() == 0 && e.getActionCommand().equals("0"))) {
-                    sb.append(e.getActionCommand());
+                } else if (buttonClicked.equals("C") && sb.length() >= 1) {
+                    sb = new StringBuilder(sb.substring(0, sb.length() - 1));
+                    screen.setText(sb.toString());
+                } else if (!(sb.isEmpty() && sb.length() == 0 && buttonClicked.equals("0")) && !buttonClicked.equals("C")) {
+                    sb.append(buttonClicked);
                     screen.setText(sb.toString());
                 }
             });
@@ -91,12 +94,11 @@ public class Calculator {
         if (clickedButton.equals("=")) {
             String lastClicked = arithmeticOperations.get(arithmeticOperations.size() - 3);
             arithmeticOperations.forEach(System.out::println);
-            for (int i = 0; i < arithmeticOperations.size(); i++) {
-                if (i % 2 != 0) {
-                    String buttonClicked = arithmeticOperations.get(i);
-                    makeOperationDependOnButtonClicked(buttonClicked);
-                } else {
-                    number = Double.parseDouble(arithmeticOperations.get(i));
+            for (String arithmeticOperation : arithmeticOperations) {
+                try {
+                    number = Double.parseDouble(arithmeticOperation);
+                } catch (NumberFormatException e) { // when exception catched, it means functional operator
+                    makeOperationDependOnButtonClicked(arithmeticOperation);
                 }
             }
             makeOperationDependOnButtonClicked(lastClicked);
@@ -110,17 +112,24 @@ public class Calculator {
         switch (buttonClicked) {
             case "+" -> result += number;
             case "-" -> {
-                result *= -1;
+                if(result <= 0) {
+                    result *= -1;
+                }
                 result -= number;
             }
-            case "/" -> result /= number;
+            case "/" -> {
+                if(result == 0.0) {
+                    result += number;
+                } else {
+                    result /= number;
+                }
+            }
             case "*" -> {
                 if (result == 0.0) {
                     result = 1.0;
                 }
                 result *= number;
             }
-
         }
     }
 
