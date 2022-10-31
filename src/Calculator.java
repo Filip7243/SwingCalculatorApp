@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Calculator {
 
-    private final static JButton[] numButtons = new JButton[10];
+    private final static JButton[] numButtons = new JButton[11];
     private final static JButton[] functionalButtons = {
             new JButton("+"),
             new JButton("-"),
@@ -23,7 +23,7 @@ public class Calculator {
 
     public Calculator() {
         // buttons config
-        addButtons();
+        createButtons();
         addActionListenerToNumButtons();
         addActionListenerToFunctionalButtons();
 
@@ -32,7 +32,7 @@ public class Calculator {
 
         // panel config
         JPanel main = new JPanel();
-        main.setLayout(new GridLayout(4, 4));
+        main.setLayout(new GridLayout(5, 5));
         addButtonsToPanel(numButtons, main);
         addButtonsToPanel(functionalButtons, main);
 
@@ -42,14 +42,15 @@ public class Calculator {
         frame.add(main, BorderLayout.CENTER);
         frame.add(screen, BorderLayout.NORTH);
         frame.setVisible(true);
-        frame.setSize(300, 300);
+        frame.setSize(500, 500);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     }
 
-    private void addButtons() {
+    private void createButtons() {
         for (int i = 0; i < numButtons.length; i++) {
             numButtons[i] = new JButton(String.valueOf(i));
         }
+        System.out.println(numButtons[numButtons.length - 1].getText());
         numButtons[numButtons.length - 1] = new JButton(".");
     }
 
@@ -62,6 +63,9 @@ public class Calculator {
     private void addActionListenerToNumButtons() {
         for (JButton b : numButtons) {
             b.addActionListener(e -> {
+                if(sb.toString().contains(".") && e.getActionCommand().equals(".")) {
+                    return;
+                }
                 if (!(sb.isEmpty() && sb.length() == 0 && e.getActionCommand().equals("0"))) {
                     sb.append(e.getActionCommand());
                     screen.setText(sb.toString());
@@ -79,7 +83,6 @@ public class Calculator {
                 sb = new StringBuilder();
                 screen.setText("");
                 whenEqualsClicked(clickedButton);
-                screen.setText(String.valueOf(result));
             });
         }
     }
@@ -87,6 +90,7 @@ public class Calculator {
     private void whenEqualsClicked(String clickedButton) {
         if (clickedButton.equals("=")) {
             String lastClicked = arithmeticOperations.get(arithmeticOperations.size() - 3);
+            arithmeticOperations.forEach(System.out::println);
             for (int i = 0; i < arithmeticOperations.size(); i++) {
                 if (i % 2 != 0) {
                     String buttonClicked = arithmeticOperations.get(i);
@@ -96,13 +100,19 @@ public class Calculator {
                 }
             }
             makeOperationDependOnButtonClicked(lastClicked);
+            screen.setText(String.valueOf(result));
+            arithmeticOperations.clear();
+            result = 0.0;
         }
     }
 
     private void makeOperationDependOnButtonClicked(String buttonClicked) {
         switch (buttonClicked) {
             case "+" -> result += number;
-            case "-" -> result -= number;
+            case "-" -> {
+                result *= -1;
+                result -= number;
+            }
             case "/" -> result /= number;
             case "*" -> {
                 if (result == 0.0) {
@@ -110,6 +120,7 @@ public class Calculator {
                 }
                 result *= number;
             }
+
         }
     }
 
