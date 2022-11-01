@@ -1,7 +1,9 @@
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Stack;
 
 public class Calculator {
 
@@ -93,6 +95,7 @@ public class Calculator {
     private void whenEqualsClicked(String clickedButton) {
         if (clickedButton.equals("=")) {
             arithmeticOperations.remove(arithmeticOperations.size() - 1);
+            orderArithmeticalOperations(arithmeticOperations);
             for (int i = 0; i < arithmeticOperations.size(); i++) {
                 try {
                     Double.parseDouble(arithmeticOperations.get(i));
@@ -118,6 +121,38 @@ public class Calculator {
             case "/" -> result = n1 / n2;
             case "*" -> result = n1 * n2;
         }
+    }
+
+    private void orderArithmeticalOperations(List<String> arithmeticOperations) {
+        var temp = new ArrayList<>(arithmeticOperations);
+        for (int i = 0; i < temp.size(); i++) {
+            if (i % 2 != 0) {
+                var operation = temp.get(i);
+                switch (operation) {
+                    case "*" -> {
+                        double n1 = Double.parseDouble(temp.get(i - 1));
+                        double n2 = Double.parseDouble(temp.get(i + 1));
+                        remove(temp, i);
+                        temp.add(i-1, String.valueOf(n1*n2));
+                    }
+                    case "/" -> {
+                        double n1 = Double.parseDouble(temp.get(i - 1));
+                        double n2 = Double.parseDouble(temp.get(i + 1));
+                        remove(temp, i);
+                        temp.add(i-1, String.valueOf(n1/n2));
+                    }
+                }
+            }
+        }
+
+        temp.forEach(System.out::print);
+        System.out.println();
+    }
+
+    private static void remove(ArrayList<String> temp, int i) {
+        temp.remove(i + 1);
+        temp.remove(i - 1);
+        temp.remove(i - 1);
     }
 
 }
