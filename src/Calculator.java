@@ -94,18 +94,18 @@ public class Calculator {
 
     private void whenEqualsClicked(String clickedButton) {
         if (clickedButton.equals("=")) {
-            arithmeticOperations.remove(arithmeticOperations.size() - 1);
-            orderArithmeticalOperations(arithmeticOperations);
-            for (int i = 0; i < arithmeticOperations.size(); i++) {
+            arithmeticOperations.remove(arithmeticOperations.size() - 1); // removing equals
+            List<String> op = orderArithmeticalOperations(arithmeticOperations); // list with ordered arithmetical operations, it contains only + and -
+            for (int i = 0; i < op.size(); i++) {
                 try {
-                    Double.parseDouble(arithmeticOperations.get(i));
+                    Double.parseDouble(op.get(i));
                 } catch (NumberFormatException e) { // when exception catched, it means functional operator
-                    n1 = Double.parseDouble(arithmeticOperations.get(i - 1));
-                    n2 = Double.parseDouble(arithmeticOperations.get(i + 1));
-                    makeOperationDependOnButtonClicked(arithmeticOperations.get(i));
-                    arithmeticOperations.remove(i - 1);
-                    arithmeticOperations.remove(i);
-                    arithmeticOperations.add(i, String.valueOf(result));
+                    n1 = Double.parseDouble(op.get(i - 1));
+                    n2 = Double.parseDouble(op.get(i + 1));
+                    makeOperationDependOnButtonClicked(op.get(i));
+                    op.remove(i - 1);
+                    op.remove(i);
+                    op.add(i, String.valueOf(result));
                 }
             }
             screen.setText(String.valueOf(result));
@@ -118,35 +118,33 @@ public class Calculator {
         switch (buttonClicked) {
             case "+" -> result = n1 + n2;
             case "-" -> result = n1 - n2;
-            case "/" -> result = n1 / n2;
-            case "*" -> result = n1 * n2;
         }
     }
 
-    private void orderArithmeticalOperations(List<String> arithmeticOperations) {
+    private List<String> orderArithmeticalOperations(List<String> arithmeticOperations) { // "*" and "/" done here
         var temp = new ArrayList<>(arithmeticOperations);
-        for (int i = 0; i < temp.size(); i++) {
-            if (i % 2 != 0) {
-                var operation = temp.get(i);
-                switch (operation) {
-                    case "*" -> {
-                        double n1 = Double.parseDouble(temp.get(i - 1));
-                        double n2 = Double.parseDouble(temp.get(i + 1));
-                        remove(temp, i);
-                        temp.add(i-1, String.valueOf(n1*n2));
-                    }
-                    case "/" -> {
-                        double n1 = Double.parseDouble(temp.get(i - 1));
-                        double n2 = Double.parseDouble(temp.get(i + 1));
-                        remove(temp, i);
-                        temp.add(i-1, String.valueOf(n1/n2));
+        while(temp.contains("*") || temp.contains("/")) {
+            for (int i = 0; i < temp.size(); i++) {
+                if (i % 2 != 0) {
+                    var operation = temp.get(i);
+                    switch (operation) {
+                        case "*" -> {
+                            double n1 = Double.parseDouble(temp.get(i - 1));
+                            double n2 = Double.parseDouble(temp.get(i + 1));
+                            remove(temp, i);
+                            temp.add(i-1, String.valueOf(n1*n2));
+                        }
+                        case "/" -> {
+                            double n1 = Double.parseDouble(temp.get(i - 1));
+                            double n2 = Double.parseDouble(temp.get(i + 1));
+                            remove(temp, i);
+                            temp.add(i-1, String.valueOf(n1/n2));
+                        }
                     }
                 }
             }
         }
-
-        temp.forEach(System.out::print);
-        System.out.println();
+        return temp;
     }
 
     private static void remove(ArrayList<String> temp, int i) {
