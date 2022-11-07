@@ -130,29 +130,33 @@ public class Calculator {
         var temp = new ArrayList<>(arithmeticOperations);
         while(temp.contains("*") || temp.contains("/")) {
             for (int i = 0; i < temp.size(); i++) {
-                if (i % 2 != 0) {
-                    var operation = temp.get(i);
-                    switch (operation) {
-                        case "*" -> {
-                            double n1 = Double.parseDouble(temp.get(i - 1));
-                            double n2 = Double.parseDouble(temp.get(i + 1));
-                            remove(temp, i);
-                            temp.add(i-1, String.valueOf(n1*n2));
-                        }
-                        case "/" -> {
-                            double n1 = Double.parseDouble(temp.get(i - 1));
-                            double n2 = Double.parseDouble(temp.get(i + 1));
-                            remove(temp, i);
-                            temp.add(i-1, String.valueOf(n1/n2));
-                        }
-                    }
+                if (i % 2 != 0) { // when i is odd, it means we are on arithmetical operator index(*, /, +, -)
+                    multiplyOrDivide(temp, i);
                 }
             }
         }
         return temp;
     }
 
-    private static void remove(ArrayList<String> temp, int i) {
+    private static void multiplyOrDivide(ArrayList<String> temp, int i) {
+        var operation = temp.get(i);
+        switch (operation) {
+            case "*" -> {
+                double n1 = Double.parseDouble(temp.get(i - 1));
+                double n2 = Double.parseDouble(temp.get(i + 1));
+                remove(temp, i);
+                temp.add(i -1, String.valueOf(n1*n2));
+            }
+            case "/" -> {
+                double n1 = Double.parseDouble(temp.get(i - 1));
+                double n2 = Double.parseDouble(temp.get(i + 1));
+                remove(temp, i);
+                temp.add(i -1, String.valueOf(n1/n2));
+            }
+        }
+    }
+
+    private static void remove(List<String> temp, int i) {
         temp.remove(i + 1);
         temp.remove(i - 1);
         temp.remove(i - 1);
