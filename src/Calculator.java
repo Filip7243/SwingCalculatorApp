@@ -1,21 +1,42 @@
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
-import java.util.Stack;
 
 public class Calculator {
 
-    private final static JButton[] numButtons = new JButton[12];
-    private final static JButton[] functionalButtons = {
+    private static final JPanel main = new JPanel(new BorderLayout(5, 5));
+    private static final JPanel buttonsPanel = new JPanel(new GridLayout(5, 3, 2, 2));
+    private static final JTextArea screen = new JTextArea(3, 40);
+
+    private static final JButton[] numButtons = new JButton[12];
+    private static final JButton[] functionalButtons = {
             new JButton("+"),
             new JButton("-"),
             new JButton("*"),
             new JButton("/"),
             new JButton("="),
     };
-    private static JTextField screen = new JTextField(10);
+
+    private static final List<String> buttons = new ArrayList<>(List.of(
+            "1/x", "x^2", "+/-", "C",
+            "9", "8", "7", "*",
+            "4", "5", "6", "-",
+            "1", "2", "3", "+",
+            "=", "0", ".", "/"
+    ));
+
+    private static final List<String> numButtonss = new ArrayList<>(List.of(
+            "9", "8", "7",
+            "4", "5", "6",
+            "1", "2", "3",
+            "0", "C", "."
+    ));
+
+    private static final List<String> funButtons = new ArrayList<>(List.of(
+            "*", "+", "/", "=", "-"
+    ));
+
     private List<String> arithmeticOperations = new ArrayList<>();
     private StringBuilder sb = new StringBuilder();
     private double result = 0.0;
@@ -23,19 +44,20 @@ public class Calculator {
     private double n2 = 0.0;
 
     public Calculator() {
-        // buttons config
-        createButtons();
-        addActionListenerToNumButtons();
-        addActionListenerToFunctionalButtons();
 
         // screen config
+        screen.setBackground(Color.BLACK);
+        screen.setForeground(Color.WHITE);
         screen.setText("0");
+        screen.setFont(new Font(Font.MONOSPACED, Font.BOLD, 25));
+        screen.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 
         // panel config
-        JPanel main = new JPanel();
-        main.setLayout(new GridLayout(5, 5));
-        addButtonsToPanel(numButtons, main);
-        addButtonsToPanel(functionalButtons, main);
+        addButtonsToPanel();
+        main.setBackground(Color.BLACK);
+        buttonsPanel.setBackground(Color.BLACK);
+        main.add(screen, BorderLayout.NORTH);
+        main.add(buttonsPanel, BorderLayout.CENTER);
 
         // frame config
         JFrame frame = new JFrame("Calculator");
@@ -47,49 +69,79 @@ public class Calculator {
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     }
 
-    private void createButtons() {
-        for (int i = 0; i < numButtons.length; i++) {
-            numButtons[i] = new JButton(String.valueOf(i));
-        }
-        numButtons[numButtons.length - 2] = new JButton(".");
-        numButtons[numButtons.length - 1] = new JButton("C");
+    private void addButtonsToPanel() {
+        for(String s : buttons) {
+            JButton b = new JButton(s);
+            b.setFont(new Font(Font.MONOSPACED, Font.BOLD, 15));
+            b.setOpaque(false);
+            b.setBorderPainted(false);
+            b.setBackground(Color.BLACK);
+            b.setForeground(Color.WHITE);
 
-    }
-
-    private void addButtonsToPanel(JButton[] buttons, JPanel panel) {
-        for (JButton b : buttons) {
-            panel.add(b);
-        }
-    }
-
-    private void addActionListenerToNumButtons() {
-        for (JButton b : numButtons) {
-            b.addActionListener(e -> {
-                String buttonClicked = e.getActionCommand();
-                if (sb.toString().contains(".") && buttonClicked.equals(".")) {
-                    return;
-                } else if (buttonClicked.equals("C") && sb.length() >= 1) {
-                    sb = new StringBuilder(sb.substring(0, sb.length() - 1));
-                    screen.setText(sb.toString());
-                } else if (!(sb.isEmpty() && sb.length() == 0 && buttonClicked.equals("0")) && !buttonClicked.equals("C")) {
-                    sb.append(buttonClicked);
-                    screen.setText(sb.toString());
-                }
-            });
+            if(numButtonss.contains(b.getText())){
+                addActionListenerToNumButton(b);
+            } else if(funButtons.contains(b.getText())) {
+                addActionListenerToFunctionalButton(b);
+            } else {
+                addActionListenerToOtherButtons(b);
+            }
+            buttonsPanel.add(b);
         }
     }
 
-    private void addActionListenerToFunctionalButtons() {
-        for (JButton b : functionalButtons) {
-            b.addActionListener(e -> {
+    private void addActionListenerToNumButton(JButton b) {
+        b.addActionListener(e -> {
+            String buttonClicked = e.getActionCommand();
+            if (sb.toString().contains(".") && buttonClicked.equals(".")) {
+                return;
+            } else if (buttonClicked.equals("C") && sb.length() >= 1) {
+                sb = new StringBuilder(sb.substring(0, sb.length() - 1));
+                screen.setText(sb.toString());
+            } else if (!(sb.isEmpty() && sb.length() == 0 && buttonClicked.equals("0")) && !buttonClicked.equals("C")) {
+                sb.append(buttonClicked);
+                screen.setText(sb.toString());
+            }
+        });
+    }
+
+    private void addActionListenerToFunctionalButton(JButton b) {
+        b.addActionListener(e -> {
+            String clickedButton = e.getActionCommand();
+            arithmeticOperations.add(sb.toString());
+            arithmeticOperations.add(clickedButton);
+            sb = new StringBuilder();
+            screen.setText("");
+            whenEqualsClicked(clickedButton);
+        });
+    }
+
+    private void addActionListenerToOtherButtons(JButton b) {
+        // "1/x", "x^2", "+/-"
+        b.addActionListener(e -> {
+            if(!(sb.isEmpty() && screen.getText().isEmpty())) {
                 String clickedButton = e.getActionCommand();
-                arithmeticOperations.add(sb.toString());
-                arithmeticOperations.add(clickedButton);
-                sb = new StringBuilder();
-                screen.setText("");
-                whenEqualsClicked(clickedButton);
-            });
-        }
+                double numberOnScreen = Double.parseDouble(screen.getText());
+                switch (clickedButton) {
+                    case "1/x" -> {
+                        numberOnScreen = 1/numberOnScreen;
+                        changeNumberOnScreen(numberOnScreen);
+                    }
+                    case "x^2" -> {
+                        numberOnScreen = Math.pow(numberOnScreen, 2);
+                        changeNumberOnScreen(numberOnScreen);
+                    }
+                    case "+/-" -> {
+                        numberOnScreen *= -1;
+                        changeNumberOnScreen(numberOnScreen);
+                    }
+                }
+            }
+        });
+    }
+
+    private void changeNumberOnScreen(Double numberOnScreen) {
+        sb = new StringBuilder(String.valueOf(numberOnScreen));
+        screen.setText(sb.toString());
     }
 
     private void whenEqualsClicked(String clickedButton) {
@@ -99,7 +151,7 @@ public class Calculator {
             op.forEach(System.out::println);
             for (int i = 0; i < op.size(); i++) {
                 try {
-                    if(op.size() == 1) {
+                    if (op.size() == 1) { // if in op is only one number
                         result = Double.parseDouble(op.get(i));
                     } else {
                         Double.parseDouble(op.get(i));
@@ -128,7 +180,7 @@ public class Calculator {
 
     private List<String> orderArithmeticalOperations(List<String> arithmeticOperations) { // "*" and "/" done here
         var temp = new ArrayList<>(arithmeticOperations);
-        while(temp.contains("*") || temp.contains("/")) {
+        while (temp.contains("*") || temp.contains("/")) {
             for (int i = 0; i < temp.size(); i++) {
                 if (i % 2 != 0) { // when i is odd, it means we are on arithmetical operator index(*, /, +, -)
                     multiplyOrDivide(temp, i);
@@ -145,13 +197,13 @@ public class Calculator {
                 double n1 = Double.parseDouble(temp.get(i - 1));
                 double n2 = Double.parseDouble(temp.get(i + 1));
                 remove(temp, i);
-                temp.add(i -1, String.valueOf(n1*n2));
+                temp.add(i - 1, String.valueOf(n1 * n2));
             }
             case "/" -> {
                 double n1 = Double.parseDouble(temp.get(i - 1));
                 double n2 = Double.parseDouble(temp.get(i + 1));
                 remove(temp, i);
-                temp.add(i -1, String.valueOf(n1/n2));
+                temp.add(i - 1, String.valueOf(n1 / n2));
             }
         }
     }
