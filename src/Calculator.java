@@ -70,10 +70,18 @@ public class Calculator {
             b.setForeground(Color.WHITE);
 
             if(numButtons.contains(b.getText())){ // check if button is number button
+                if(b.getText().equals("C")) {
+                    b.setForeground(Color.ORANGE);
+                }
                 addActionListenerToNumButton(b);
             } else if(functionalButtons.contains(b.getText())) { // check if button is functional button (arithmetical operator)
+                b.setForeground(Color.ORANGE);
+                if(b.getText().equals("=")) {
+                    b.setForeground(Color.CYAN);
+                }
                 addActionListenerToFunctionalButton(b);
             } else {
+                b.setForeground(Color.ORANGE);
                 addActionListenerToOtherButton(b);
             }
             buttonsPanel.add(b); // button added to panel
@@ -154,7 +162,6 @@ public class Calculator {
             }
         } else {
             List<String> op = orderArithmeticalOperations(arithmeticOperations); // list with ordered arithmetical operations, it contains only + and -
-            op.forEach(System.out::println);
             for (int i = 0; i < op.size(); i++) {
                 try {
                     if (op.size() == 1) { // if in op is only one number
