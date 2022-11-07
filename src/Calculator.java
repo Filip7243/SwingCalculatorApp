@@ -5,20 +5,11 @@ import java.util.List;
 
 public class Calculator {
 
-    private static final JPanel main = new JPanel(new BorderLayout(5, 5));
-    private static final JPanel buttonsPanel = new JPanel(new GridLayout(5, 3, 2, 2));
-    private static final JTextArea screen = new JTextArea(3, 40);
+    private static final JPanel main = new JPanel(new BorderLayout(5, 5)); // panel that contains all components (buttonsPanel, screen)
+    private static final JPanel buttonsPanel = new JPanel(new GridLayout(5, 3, 2, 2)); // panel that contains all buttons
+    private static final JTextArea screen = new JTextArea(3, 40); // here will be displayed user's input
 
-    private static final JButton[] numButtons = new JButton[12];
-    private static final JButton[] functionalButtons = {
-            new JButton("+"),
-            new JButton("-"),
-            new JButton("*"),
-            new JButton("/"),
-            new JButton("="),
-    };
-
-    private static final List<String> buttons = new ArrayList<>(List.of(
+    private static final List<String> allButtons = new ArrayList<>(List.of(
             "1/x", "x^2", "+/-", "C",
             "9", "8", "7", "*",
             "4", "5", "6", "-",
@@ -26,20 +17,20 @@ public class Calculator {
             "=", "0", ".", "/"
     ));
 
-    private static final List<String> numButtonss = new ArrayList<>(List.of(
+    private static final List<String> numButtons = new ArrayList<>(List.of(
             "9", "8", "7",
             "4", "5", "6",
             "1", "2", "3",
             "0", "C", "."
     ));
 
-    private static final List<String> funButtons = new ArrayList<>(List.of(
+    private static final List<String> functionalButtons = new ArrayList<>(List.of(
             "*", "+", "/", "=", "-"
     ));
 
-    private List<String> arithmeticOperations = new ArrayList<>();
-    private StringBuilder sb = new StringBuilder();
-    private double result = 0.0;
+    private List<String> arithmeticOperations = new ArrayList<>(); // it contains all numbers and arithmetical operators
+    private StringBuilder sb = new StringBuilder(); // it contains that all numbers that user passed to JTextArea
+    private double result = 0.0; // result of user's input
     private double n1 = 0.0;
     private double n2 = 0.0;
 
@@ -48,14 +39,14 @@ public class Calculator {
         // screen config
         screen.setBackground(Color.BLACK);
         screen.setForeground(Color.WHITE);
-        screen.setText("0");
+        screen.setText("0"); // initial value of screen
         screen.setFont(new Font(Font.MONOSPACED, Font.BOLD, 25));
-        screen.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+        screen.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT); // text on screen will be displayed from righ to left
 
-        // panel config
-        addButtonsToPanel();
-        main.setBackground(Color.BLACK);
+        // panels config
+        addButtonsToPanel(); // adding buttons to panel with listeners
         buttonsPanel.setBackground(Color.BLACK);
+        main.setBackground(Color.BLACK);
         main.add(screen, BorderLayout.NORTH);
         main.add(buttonsPanel, BorderLayout.CENTER);
 
@@ -70,7 +61,7 @@ public class Calculator {
     }
 
     private void addButtonsToPanel() {
-        for(String s : buttons) {
+        for(String s : allButtons) {
             JButton b = new JButton(s);
             b.setFont(new Font(Font.MONOSPACED, Font.BOLD, 15));
             b.setOpaque(false);
@@ -78,24 +69,24 @@ public class Calculator {
             b.setBackground(Color.BLACK);
             b.setForeground(Color.WHITE);
 
-            if(numButtonss.contains(b.getText())){
+            if(numButtons.contains(b.getText())){ // check if button is number button
                 addActionListenerToNumButton(b);
-            } else if(funButtons.contains(b.getText())) {
+            } else if(functionalButtons.contains(b.getText())) { // check if button is functional button (arithmetical operator)
                 addActionListenerToFunctionalButton(b);
             } else {
-                addActionListenerToOtherButtons(b);
+                addActionListenerToOtherButton(b);
             }
-            buttonsPanel.add(b);
+            buttonsPanel.add(b); // button added to panel
         }
     }
 
     private void addActionListenerToNumButton(JButton b) {
         b.addActionListener(e -> {
             String buttonClicked = e.getActionCommand();
-            if (sb.toString().contains(".") && buttonClicked.equals(".")) {
+            if (sb.toString().contains(".") && buttonClicked.equals(".")) { // check if dot already exists in number, prevents from multiple dots in number
                 return;
             } else if (buttonClicked.equals("C") && sb.length() >= 1) {
-                sb = new StringBuilder(sb.substring(0, sb.length() - 1));
+                sb = new StringBuilder(sb.substring(0, sb.length() - 1)); // deleting last digit in number
                 screen.setText(sb.toString());
             } else if (!(sb.isEmpty() && sb.length() == 0 && buttonClicked.equals("0")) && !buttonClicked.equals("C")) {
                 sb.append(buttonClicked);
@@ -107,15 +98,19 @@ public class Calculator {
     private void addActionListenerToFunctionalButton(JButton b) {
         b.addActionListener(e -> {
             String clickedButton = e.getActionCommand();
-            arithmeticOperations.add(sb.toString());
+            if(!sb.isEmpty()) {
+                arithmeticOperations.add(sb.toString());
+            }
             arithmeticOperations.add(clickedButton);
             sb = new StringBuilder();
             screen.setText("");
-            whenEqualsClicked(clickedButton);
+            if(clickedButton.equals("=")) {
+                whenEqualsClicked(clickedButton);
+            }
         });
     }
 
-    private void addActionListenerToOtherButtons(JButton b) {
+    private void addActionListenerToOtherButton(JButton b) {
         // "1/x", "x^2", "+/-"
         b.addActionListener(e -> {
             if(!(sb.isEmpty() && screen.getText().isEmpty())) {
@@ -145,8 +140,19 @@ public class Calculator {
     }
 
     private void whenEqualsClicked(String clickedButton) {
-        if (clickedButton.equals("=")) {
-            arithmeticOperations.remove(arithmeticOperations.size() - 1); // removing equals
+        arithmeticOperations.remove(arithmeticOperations.size() - 1); // removing equals
+        if(arithmeticOperations.isEmpty()) {
+            result = 0.0;
+        }
+        else if(functionalButtons.contains(arithmeticOperations.get(arithmeticOperations.size() - 1))) { // if last clicked button was functional ex. "22 *" it means bad operation
+            result = 0.0;
+        } else if(arithmeticOperations.size() == 1) {
+            try {
+                result = Double.parseDouble(arithmeticOperations.get(0)); // if was passed only one number
+            } catch (NumberFormatException e) { // if was clicked only functional operator
+                result = 0.0;
+            }
+        } else {
             List<String> op = orderArithmeticalOperations(arithmeticOperations); // list with ordered arithmetical operations, it contains only + and -
             op.forEach(System.out::println);
             for (int i = 0; i < op.size(); i++) {
@@ -165,20 +171,14 @@ public class Calculator {
                     op.add(i, String.valueOf(result));
                 }
             }
-            screen.setText(String.valueOf(result));
-            arithmeticOperations.clear();
-            result = 0.0;
+
         }
+        screen.setText(String.valueOf(result));
+        arithmeticOperations.clear();
+        result = 0.0;
     }
 
-    private void makeOperationDependOnButtonClicked(String buttonClicked) {
-        switch (buttonClicked) {
-            case "+" -> result = n1 + n2;
-            case "-" -> result = n1 - n2;
-        }
-    }
-
-    private List<String> orderArithmeticalOperations(List<String> arithmeticOperations) { // "*" and "/" done here
+    private List<String> orderArithmeticalOperations(List<String> arithmeticOperations) { // "*" and "/" make here
         var temp = new ArrayList<>(arithmeticOperations);
         while (temp.contains("*") || temp.contains("/")) {
             for (int i = 0; i < temp.size(); i++) {
@@ -208,10 +208,19 @@ public class Calculator {
         }
     }
 
+
     private static void remove(List<String> temp, int i) {
         temp.remove(i + 1);
         temp.remove(i - 1);
         temp.remove(i - 1);
     }
+
+    private void makeOperationDependOnButtonClicked(String buttonClicked) {
+        switch (buttonClicked) {
+            case "+" -> result = n1 + n2;
+            case "-" -> result = n1 - n2;
+        }
+    }
+
 
 }
