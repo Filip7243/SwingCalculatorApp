@@ -43,7 +43,7 @@ public class Calculator {
         frame.add(main, BorderLayout.CENTER);
         frame.add(screen, BorderLayout.NORTH);
         frame.setVisible(true);
-        frame.setSize(500, 500);
+        frame.setSize(340, 400);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     }
 
@@ -56,8 +56,8 @@ public class Calculator {
 
     }
 
-    private void addButtonsToPanel(JButton[] numButtons, JPanel panel) {
-        for (JButton b : numButtons) {
+    private void addButtonsToPanel(JButton[] buttons, JPanel panel) {
+        for (JButton b : buttons) {
             panel.add(b);
         }
     }
@@ -96,9 +96,14 @@ public class Calculator {
         if (clickedButton.equals("=")) {
             arithmeticOperations.remove(arithmeticOperations.size() - 1); // removing equals
             List<String> op = orderArithmeticalOperations(arithmeticOperations); // list with ordered arithmetical operations, it contains only + and -
+            op.forEach(System.out::println);
             for (int i = 0; i < op.size(); i++) {
                 try {
-                    Double.parseDouble(op.get(i));
+                    if(op.size() == 1) {
+                        result = Double.parseDouble(op.get(i));
+                    } else {
+                        Double.parseDouble(op.get(i));
+                    }
                 } catch (NumberFormatException e) { // when exception catched, it means functional operator
                     n1 = Double.parseDouble(op.get(i - 1));
                     n2 = Double.parseDouble(op.get(i + 1));
